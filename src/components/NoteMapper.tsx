@@ -96,10 +96,6 @@ export default function NoteMapper({ playNote, stopNote }: NoteMapperProps) {
             stepIndexRef.current = (stepIndexRef.current + 1) % steps;
             playStep(stepIndexRef.current);
         }, stepTime * 1000);
-        intervalRef.current = setInterval(() => {
-            stepIndexRef.current = (stepIndexRef.current + 1) % steps;
-            playStep(stepIndexRef.current);
-        }, stepTime * 1000);
     }, [steps, stepDuration, playNote, stopNote, settings, setCurrentStep]);
 
     const stopSequence = useCallback(() => {
