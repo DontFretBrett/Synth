@@ -17,11 +17,11 @@ function App() {
 
     const { settings, setSettings } = useSynthSettingsStore();
 
-    const handleNotePress = (note: Note) => {
+    const handleNotePress = async (note: Note) => {
         if (!isInitialized) {
-            startAudioContext();
+            await startAudioContext();
         }
-        playNote(note, settings);
+        await playNote(note, settings);
     };
 
     const handleNoteRelease = (note: Note) => {

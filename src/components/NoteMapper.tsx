@@ -41,9 +41,14 @@ export default function NoteMapper({ playNote, stopNote }: NoteMapperProps) {
         return 60 / bpm / 4; // 16th notes
     }, [bpm]);
 
-    const playSequence = useCallback(() => {
+    const playSequence = useCallback(async () => {
         if (!audioContextRef.current) {
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        
+        // Ensure context is running (critical for iOS Safari)
+        if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
         }
 
         const stepTime = stepDuration();

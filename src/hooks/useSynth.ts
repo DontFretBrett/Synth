@@ -51,16 +51,33 @@ export function useSynth(): UseSynthReturn {
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [activeNotes, setActiveNotes] = useState<Set<Note>>(new Set());
 
-    const startAudioContext = useCallback(() => {
-        if (audioContextRef.current) return;
+    const startAudioContext = useCallback(async () => {
+        if (audioContextRef.current) {
+            // Resume if suspended (important for iOS Safari)
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume();
+            }
+            return;
+        }
         
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Ensure context is running (critical for iOS Safari)
+        if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
+        }
+        
         setIsInitialized(true);
     }, []);
 
-    const playNote = useCallback((note: Note, settings: Partial<SynthSettings> = {}) => {
+    const playNote = useCallback(async (note: Note, settings: Partial<SynthSettings> = {}) => {
         if (!audioContextRef.current) {
-            startAudioContext();
+            await startAudioContext();
+        }
+        
+        // Ensure context is running (important for iOS Safari)
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
         }
 
         // If note is already playing and forceRetrigger is not set, return early

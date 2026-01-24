@@ -20,6 +20,16 @@ export default function Keyboard({ activeNotes, onNotePress, onNoteRelease }: Ke
         onNoteRelease(note);
     };
 
+    const handleTouchStart = (e: React.TouchEvent, note: Note) => {
+        e.preventDefault(); // Prevent mouse events from also firing
+        onNotePress(note);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent, note: Note) => {
+        e.preventDefault(); // Prevent mouse events from also firing
+        onNoteRelease(note);
+    };
+
     return (
         <div className="keyboard-container">
             <div className="keyboard">
@@ -30,6 +40,8 @@ export default function Keyboard({ activeNotes, onNotePress, onNoteRelease }: Ke
                             onMouseDown={() => handleMouseDown(note)}
                             onMouseUp={() => handleMouseUp(note)}
                             onMouseLeave={() => handleMouseUp(note)}
+                            onTouchStart={(e) => handleTouchStart(e, note)}
+                            onTouchEnd={(e) => handleTouchEnd(e, note)}
                         >
                             <div className="key-label">{note}</div>
                         </div>
@@ -39,6 +51,8 @@ export default function Keyboard({ activeNotes, onNotePress, onNoteRelease }: Ke
                                 onMouseDown={() => handleMouseDown(blackKeys[index]!)}
                                 onMouseUp={() => handleMouseUp(blackKeys[index]!)}
                                 onMouseLeave={() => handleMouseUp(blackKeys[index]!)}
+                                onTouchStart={(e) => handleTouchStart(e, blackKeys[index]!)}
+                                onTouchEnd={(e) => handleTouchEnd(e, blackKeys[index]!)}
                             >
                                 <div className="key-label">{blackKeys[index]}</div>
                             </div>
