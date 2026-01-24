@@ -36,8 +36,8 @@ const KEYBOARD_MAP: KeyboardMap = {
 export interface UseSynthReturn {
     isInitialized: boolean;
     activeNotes: Set<Note>;
-    startAudioContext: () => void;
-    playNote: (note: Note, settings?: Partial<SynthSettings>) => void;
+    startAudioContext: () => Promise<void>;
+    playNote: (note: Note, settings?: Partial<SynthSettings>) => Promise<void>;
     stopNote: (note: Note, releaseTime?: number) => void;
     stopAllNotes: () => void;
     noteFrequencies: NoteFrequencies;
@@ -188,11 +188,11 @@ export function useSynth(): UseSynthReturn {
 
     // Keyboard input handling
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = async (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (!isInitialized) {
-                    startAudioContext();
+                    await startAudioContext();
                 }
                 return;
             }
@@ -201,7 +201,7 @@ export function useSynth(): UseSynthReturn {
 
             const note = KEYBOARD_MAP[e.key.toLowerCase()];
             if (note && !oscillatorsRef.current.has(note)) {
-                playNote(note);
+                await playNote(note);
             }
         };
 
