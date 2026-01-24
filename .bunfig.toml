@@ -1,0 +1,12 @@
+# Bun configuration file
+# This file configures Bun's behavior for this project
+
+[install]
+# Use the same registry as npm
+registry = "https://registry.npmjs.org/"
+
+# Auto-install peer dependencies
+peer = true
+
+# Install dev dependencies by default
+dev = true
