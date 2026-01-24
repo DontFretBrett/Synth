@@ -71,14 +71,8 @@ export function useSynth(): UseSynthReturn {
     }, []);
 
     const playNote = useCallback(async (note: Note, settings: Partial<SynthSettings> = {}) => {
-        if (!audioContextRef.current) {
-            await startAudioContext();
-        }
-        
-        // Ensure context is running (important for iOS Safari)
-        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-            await audioContextRef.current.resume();
-        }
+        // Ensure audio context is initialized and running
+        await startAudioContext();
 
         // If note is already playing and forceRetrigger is not set, return early
         // Otherwise, stop the existing note first to allow retriggering

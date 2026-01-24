@@ -6,7 +6,7 @@ import './NoteMapper.css';
 const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 interface NoteMapperProps {
-    playNote: (note: Note, settings?: Partial<SynthSettings>) => void;
+    playNote: (note: Note, settings?: Partial<SynthSettings>) => Promise<void>;
     stopNote: (note: Note, releaseTime?: number) => void;
 }
 
@@ -54,7 +54,7 @@ export default function NoteMapper({ playNote, stopNote }: NoteMapperProps) {
         const stepTime = stepDuration();
         stepIndexRef.current = 0;
 
-        const playStep = (stepIdx: number) => {
+        const playStep = async (stepIdx: number) => {
             setCurrentStep(stepIdx);
             
             // Always read from the ref to get the latest sequence
@@ -76,12 +76,12 @@ export default function NoteMapper({ playNote, stopNote }: NoteMapperProps) {
             // Play notes in current step
             // Always use forceRetrigger: true so notes play even if still releasing from earlier steps
             if (currentNotes.length > 0) {
-                currentNotes.forEach(note => {
+                await Promise.all(currentNotes.map(note => 
                     playNote(note, {
                         ...settings,
                         forceRetrigger: true
-                    });
-                });
+                    })
+                ));
             }
 
             // Update active notes set for next iteration
@@ -92,6 +92,10 @@ export default function NoteMapper({ playNote, stopNote }: NoteMapperProps) {
         playStep(0);
 
         // Set up interval for looping
+        intervalRef.current = setInterval(() => {
+            stepIndexRef.current = (stepIndexRef.current + 1) % steps;
+            playStep(stepIndexRef.current);
+        }, stepTime * 1000);
         intervalRef.current = setInterval(() => {
             stepIndexRef.current = (stepIndexRef.current + 1) % steps;
             playStep(stepIndexRef.current);
