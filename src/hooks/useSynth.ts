@@ -36,8 +36,8 @@ const KEYBOARD_MAP: KeyboardMap = {
 export interface UseSynthReturn {
     isInitialized: boolean;
     activeNotes: Set<Note>;
-    startAudioContext: () => void;
-    playNote: (note: Note, settings?: Partial<SynthSettings>) => void;
+    startAudioContext: () => Promise<void>;
+    playNote: (note: Note, settings?: Partial<SynthSettings>) => Promise<void>;
     stopNote: (note: Note, releaseTime?: number) => void;
     stopAllNotes: () => void;
     noteFrequencies: NoteFrequencies;
@@ -51,17 +51,28 @@ export function useSynth(): UseSynthReturn {
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [activeNotes, setActiveNotes] = useState<Set<Note>>(new Set());
 
-    const startAudioContext = useCallback(() => {
-        if (audioContextRef.current) return;
+    const startAudioContext = useCallback(async () => {
+        if (audioContextRef.current) {
+            // Resume if suspended (important for iOS Safari)
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume();
+            }
+            return;
+        }
         
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Ensure context is running (critical for iOS Safari)
+        if (audioContextRef.current.state === 'suspended') {
+            await audioContextRef.current.resume();
+        }
+        
         setIsInitialized(true);
     }, []);
 
-    const playNote = useCallback((note: Note, settings: Partial<SynthSettings> = {}) => {
-        if (!audioContextRef.current) {
-            startAudioContext();
-        }
+    const playNote = useCallback(async (note: Note, settings: Partial<SynthSettings> = {}) => {
+        // Ensure audio context is initialized and running
+        await startAudioContext();
 
         // If note is already playing and forceRetrigger is not set, return early
         // Otherwise, stop the existing note first to allow retriggering
@@ -171,11 +182,11 @@ export function useSynth(): UseSynthReturn {
 
     // Keyboard input handling
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = async (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (!isInitialized) {
-                    startAudioContext();
+                    await startAudioContext();
                 }
                 return;
             }
@@ -184,7 +195,7 @@ export function useSynth(): UseSynthReturn {
 
             const note = KEYBOARD_MAP[e.key.toLowerCase()];
             if (note && !oscillatorsRef.current.has(note)) {
-                playNote(note);
+                await playNote(note);
             }
         };
 
